@@ -454,7 +454,7 @@ int efectoTiradas(int casillaActual, int numeroDeTiradas) {
 
 int tirarDadoManual() {
 	int dado;
-	cout << "INTRODUCE EL VALOR DEL DADO: " << endl;
+	cout << "INTRODUCE EL VALOR DEL DADO: ";
 	cin >> dado;
 	return dado;
 }
