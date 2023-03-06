@@ -1,0 +1,241 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <cstdlib>
+
+
+using namespace std;
+
+typedef enum tTipo { PARED, BOMBILLA, LIBRE };
+typedef struct {
+	tTipo tipo;
+	int numBombillas;
+} tCelda;
+
+
+const int MAX_FILS = 10;
+const int MAX_COLS = 10;
+typedef struct {
+	int nFils, nCols;
+	tCelda tablero[MAX_FILS][MAX_COLS];
+} tTablero;
+
+char celdaToChar(const tCelda& celda);
+tCelda charToCelda(char c);
+bool esPared(const tCelda& c);
+bool esParedRestringida(const tCelda& c);
+int numParedRestringida(const tCelda& c);
+bool esBombilla(const tCelda& c);
+bool estaApagada(const tCelda& c);
+bool estaIluminada(const tCelda& c);
+void apagaCelda(tCelda& c);
+void actualizaIluminacionCelda(tCelda& c, bool iluminar);
+void ponBombilla(tCelda& c);
+int getNumFilas(const tTablero& tab);
+int getNumCols(const tTablero& tab);
+tCelda celdaEnPos(const tTablero& tab, int x, int y);
+bool leerTablero(ifstream& archivo, tTablero& tab);
+void mostrarTablero(const tTablero& tab);
+bool estaTerminado(tTablero const& tab);
+bool esPosQuit(int x, int y);
+void ejecutarPos(tTablero& tab, int x, int y);
+
+//main
+
+
+int main(){
+	tTablero tablero;
+	ifstream archivo;
+	archivo.open("tablero.txt");
+	leerTablero(archivo, tablero);
+
+	while (!estaTerminado(tablero)) {
+		int x;
+		int y;
+		cout << "VINI" << endl;
+		mostrarTablero(tablero);
+		cout << endl <<  "Dame las coordendas de tu proximo movimiento" << endl;
+		cin >> x >> y; 
+	}
+	cout << "ESTO ES EL MAIN" << endl;
+
+}
+	
+char celdaToChar(const tCelda& celda) {
+	switch (celda.tipo) {
+		
+		case PARED:
+			if (celda.numBombillas > 0) {
+				return celda.numBombillas;
+			}
+
+		case BOMBILLA:
+			return '*';
+		
+		default:
+			return ' ';
+		
+	}
+}
+
+tCelda charToCelda(char c) {
+
+	tCelda celda;
+
+	switch (c) {
+	case 'X':
+		celda.tipo = PARED;
+		celda.numBombillas = 0;
+		return celda;
+	
+	case '.':
+		celda.tipo = LIBRE;
+		celda.numBombillas = 0;
+		return celda;
+	
+	case '*':
+		celda.tipo = BOMBILLA;
+		celda.numBombillas = 0;
+		return celda;
+	
+	default:
+		celda.tipo = PARED;
+		celda.numBombillas = c;
+		return celda;
+	}
+}
+
+bool esPared(const tCelda& c) {
+	return c.tipo == PARED;
+}
+
+bool esParedRestringida(const tCelda& c) {
+	return c.tipo == PARED && c.numBombillas > 0;
+}
+
+int numParedRestringida(const tCelda& c) {
+	return c.numBombillas;
+}
+
+bool esBombilla(const tCelda& c) {
+	return c.tipo == BOMBILLA;
+}
+
+bool estaApagada(const tCelda& c) {
+	return c.tipo == BOMBILLA && c.numBombillas == 0;
+}
+
+bool estaIluminada(const tCelda& c) {
+	return c.tipo == BOMBILLA && c.numBombillas > 0;
+}
+
+void apagaCelda(tCelda& c) {
+	c.tipo == LIBRE;
+	c.numBombillas = 0;
+}
+
+void actualizaIluminacionCelda(tCelda& c, bool iluminar) {
+
+}
+
+void ponBombilla(tCelda& c) {
+
+	c.tipo == BOMBILLA;
+}
+
+
+//Modulo tablero
+
+int getNumFilas(const tTablero& tab) {
+	return tab.nFils;
+}
+
+int getNumCols(const tTablero& tab) {
+	return tab.nCols;
+}
+
+tCelda celdaEnPos(const tTablero& tab, int x, int y) {
+	return tab.tablero[x][y];
+}
+
+void ponCeldaEnPos(tTablero& tab, int x, int y, const tCelda& c) {
+	tab.tablero[x][y] = c;
+}
+
+bool leerTablero(ifstream& archivo, tTablero& tab) {
+
+	int bombillas = 0;
+	int x = 0;
+	int y = 0;
+
+	if (archivo.is_open()) {
+
+		archivo >> tab.nFils >> tab.nCols;
+		cout << tab.nFils << "   " << tab.nCols;
+		for (int i = 0; i < tab.nFils; i++) {
+
+			for (int j = 0; j < tab.nCols; j++) {
+				char input;
+				archivo >> input;
+				tab.tablero[i][j] = charToCelda(input);
+			}
+		}
+		archivo >> bombillas;
+		for (int i = 0; i < bombillas; i++) {
+			archivo >> x >> y;
+			tab.tablero[x][y].tipo = BOMBILLA;
+		}
+		
+	return true;
+
+		
+	}
+
+	
+	else {
+		return false;
+	}
+}
+
+void mostrarTablero(const tTablero& tab) {
+	for (int i = 0; i < tab.nFils; i++) {
+		
+		for (int j = 0; j < getNumCols(tab); j++) {
+
+			cout  << celdaToChar(tab.tablero[i][j]) << " | ";
+		}
+		cout << endl;
+	}
+}
+
+//Modulo reglasJuego
+
+bool estaTerminado(tTablero const& tab){
+
+	int x = 0;
+	int y = 0;
+	int contador = 0;
+	int bombillas = 0;
+
+	while (tab.tablero[x][y].tipo != LIBRE && x < getNumFilas(tab) && y < getNumCols(tab) && bombillas <= 1) {
+		
+		if (esBombilla(tab.tablero[x][y])) bombillas += 1;
+		if (esPared(tab.tablero[x][y])) bombillas = 0;
+		
+		contador += 1;
+		x = y == getNumCols(tab) - 1 ? x + 1 : x;
+		y = y == getNumCols(tab) - 1 ? 0 : y + 1;
+	}
+
+	//return contador == getNumFilas(tab) * getNumCols(tab);
+	return false;
+}
+
+bool esPosQuit(int x, int y){
+
+	return (x == -1 && y == 0);
+}
+
+void ejecutarPos(tTablero& tab, int x, int y){
+
+}
